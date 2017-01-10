@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import numpy as np
 import pandas as pd
 import rospy
 from geometry_msgs.msg import Twist
@@ -60,15 +61,15 @@ class PredictModel(SensorListener):
 
     def X_scaling(self, scaler, values):
         # add dummy y value
-        values.add(0.)
-        scaled_values = scaler.transform(values)
+        values = [0.] + values
+        scaled_values = scaler.transform(np.array(values).reshape(1, -1))
         # remove y scaled value
-        return scaled_values[:-1]
+        return scaled_values[1:]
 
     def Y_inverse_scaling(self, scaler, value):
         # add dummy X values for left, right, delta
-        values = [0., 0., 0.]  + value
-        return scaler.inverse_transform(values)[-1]
+        values = [value, 0., 0., 0.]
+        return scaler.inverse_transform(values)[0]
 
     def sonar_callback(self, data):
         SensorListener.sonar_callback(self, data)
